@@ -33,6 +33,7 @@ typedef struct {
     const char *album;
     const char *output;
     int track_count;
+    int bitrate;
     bool dry_run;
     bool prefer_network;
 } Options;
@@ -43,6 +44,7 @@ static void usage(const char *program) {
         "\n"
         "Options:\n"
         "  --track-count N   Select only releases with N tracks when available\n"
+        "  --bitrate N       Select only tracks with this bitrate\n"
         "  --dry-run         List matches without copying audio files\n"
         "  --network         Prefer the iPhone Wi-Fi connection\n"
         "  --help            Show this help\n",
@@ -224,7 +226,7 @@ static int query_tracks(sqlite3 *database, const Options *options, Track **track
         "       COALESCE(p.bit_rate, 0), "
         "       COALESCE(p.sample_rate, 0) "
         "FROM item AS i "
-        "JOIN item_extra AS e ON e.item_extra_pid = i.item_extra_pid "
+        "JOIN item_extra AS e ON e.item_pid = i.item_pid "
         "LEFT JOIN item_artist AS a ON a.item_artist_pid = i.item_artist_pid "
         "LEFT JOIN album AS al ON al.album_pid = i.album_pid "
         "LEFT JOIN item_playback AS p ON p.item_pid = i.item_pid "
@@ -261,6 +263,10 @@ static int query_tracks(sqlite3 *database, const Options *options, Track **track
         if (options->track_count > 0 &&
             source.track_count > 0 &&
             source.track_count != options->track_count) {
+            continue;
+        }
+
+        if (options->bitrate > 0 && source.bitrate != options->bitrate) {
             continue;
         }
 
@@ -478,6 +484,8 @@ static int parse_options(int argc, char **argv, Options *options) {
             options->output = argv[++i];
         } else if (strcmp(argv[i], "--track-count") == 0 && i + 1 < argc) {
             options->track_count = atoi(argv[++i]);
+        } else if (strcmp(argv[i], "--bitrate") == 0 && i + 1 < argc) {
+            options->bitrate = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--dry-run") == 0) {
             options->dry_run = true;
         } else if (strcmp(argv[i], "--network") == 0) {

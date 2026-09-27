@@ -54,6 +54,7 @@ First run a dry run. The command downloads a temporary copy of the media databas
   --artist "Example Artist" \
   --album "Example Album" \
   --track-count 15 \
+  --bitrate 320 \
   --dry-run
 ```
 
@@ -67,12 +68,13 @@ mkdir -p "./recovered/example-album"
   --artist "Example Artist" \
   --album "Example Album" \
   --track-count 15 \
+  --bitrate 320 \
   --output "./recovered/example-album"
 ```
 
 The recovered files keep the audio metadata already embedded in the phone copy and are named with their track number and title. Existing output files are skipped.
 
-Omit `--network` for a USB connection. `--track-count` is useful when the phone contains multiple releases with the same artist and album title. If the database does not record a track count, the option does not filter that result.
+Omit `--network` for a USB connection. `--track-count` is useful when the phone contains multiple releases with the same artist and album title. If the database does not record a track count, the option does not filter that result. Use `--bitrate` when the phone contains more than one copy of a track at different bitrates, for example `--bitrate 320`.
 
 ## What it can and cannot recover
 
