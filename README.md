@@ -29,19 +29,59 @@ make
 
 ## Find the device identifier
 
-For an iPhone connected over Wi-Fi:
+The value required by `--udid` is the long device identifier returned by
+`idevice_id`. It is not the iPhone name shown in Finder, such as `haa`.
+
+Before running the command:
+
+1. Connect the iPhone to the Mac.
+2. Unlock the iPhone and tap **Trust** if iOS asks whether to trust this Mac.
+3. Keep the iPhone connected while running the recovery.
+
+### Wi-Fi connection
+
+Make sure the iPhone and Mac are on the same network, then run:
 
 ```sh
 idevice_id -n
 ```
 
-For USB, use:
+The command prints one or more long device identifiers. Store the first one
+in the `device_id` shell variable:
 
 ```sh
-idevice_id -l
+device_id=$(idevice_id -n | head -n 1)
+printf 'Using device ID: %s\n' "$device_id"
 ```
 
-The iPhone must already be trusted by the Mac. If Finder shows a sync error, do not start a sync for recovery; use the AFC connection instead.
+Use that variable with `--udid` and keep the `--network` option:
+
+```sh
+./recover_iphone_audio \
+  --network \
+  --dry-run \
+  --artist "Example Artist" \
+  --album "Example Album" \
+  --udid "$device_id"
+```
+
+### USB connection
+
+For a USB connection, run:
+
+```sh
+device_id=$(idevice_id -l | head -n 1)
+printf 'Using device ID: %s\n' "$device_id"
+```
+
+Use `--udid "$device_id"` but omit `--network`.
+
+If either command prints nothing, the iPhone is not currently visible through
+that connection. Confirm that it is unlocked, trusted, paired with the Mac,
+and connected through the expected network or cable.
+
+The iPhone must already be trusted by the Mac. If Finder shows a sync error,
+do not start a sync for recovery; use the AFC connection instead.
 
 ## Recover an album
 
