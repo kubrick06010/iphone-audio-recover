@@ -51,8 +51,8 @@ First run a dry run. The command downloads a temporary copy of the media databas
 ./recover_iphone_audio \
   --udid "YOUR-DEVICE-ID" \
   --network \
-  --artist "La Vida Bohème" \
-  --album "Será" \
+  --artist "Example Artist" \
+  --album "Example Album" \
   --track-count 15 \
   --dry-run
 ```
@@ -60,14 +60,14 @@ First run a dry run. The command downloads a temporary copy of the media databas
 Then copy the files to an empty output directory:
 
 ```sh
-mkdir -p "./recovered/Será"
+mkdir -p "./recovered/example-album"
 ./recover_iphone_audio \
   --udid "YOUR-DEVICE-ID" \
   --network \
-  --artist "La Vida Bohème" \
-  --album "Será" \
+  --artist "Example Artist" \
+  --album "Example Album" \
   --track-count 15 \
-  --output "./recovered/Será"
+  --output "./recovered/example-album"
 ```
 
 The recovered files keep the audio metadata already embedded in the phone copy and are named with their track number and title. Existing output files are skipped.

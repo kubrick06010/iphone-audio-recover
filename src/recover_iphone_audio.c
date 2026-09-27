@@ -110,13 +110,13 @@ static int remote_file_size(afc_client_t afc, const char *path, uint64_t *size_o
 static int copy_remote_file(afc_client_t afc, const char *remote_path, const char *local_path) {
     uint64_t remote_handle = 0;
     if (afc_file_open(afc, remote_path, AFC_FOPEN_RDONLY, &remote_handle) != AFC_E_SUCCESS) {
-        fprintf(stderr, "No se pudo abrir en el iPhone: %s\n", remote_path);
+        fprintf(stderr, "Could not open on the iPhone: %s\n", remote_path);
         return -1;
     }
 
     FILE *output = fopen(local_path, "wb");
     if (!output) {
-        fprintf(stderr, "No se pudo crear %s: %s\n", local_path, strerror(errno));
+        fprintf(stderr, "Could not create %s: %s\n", local_path, strerror(errno));
         afc_file_close(afc, remote_handle);
         return -1;
     }
@@ -128,7 +128,7 @@ static int copy_remote_file(afc_client_t afc, const char *remote_path, const cha
         afc_error_t error = afc_file_read(afc, remote_handle, buffer,
                                            (uint32_t)sizeof(buffer), &bytes_read);
         if (error != AFC_E_SUCCESS) {
-            fprintf(stderr, "Error leyendo %s\n", remote_path);
+            fprintf(stderr, "Error reading %s\n", remote_path);
             result = -1;
             break;
         }
@@ -136,7 +136,7 @@ static int copy_remote_file(afc_client_t afc, const char *remote_path, const cha
             break;
         }
         if (fwrite(buffer, 1, bytes_read, output) != bytes_read) {
-            fprintf(stderr, "Error escribiendo %s: %s\n", local_path, strerror(errno));
+            fprintf(stderr, "Error writing %s: %s\n", local_path, strerror(errno));
             result = -1;
             break;
         }
@@ -162,7 +162,7 @@ static int download_database_files(afc_client_t afc, const char *directory, char
 
     snprintf(database_path, database_path_size, "%s/MediaLibrary.sqlitedb", directory);
     if (copy_remote_file(afc, database_remote, database_path) != 0) {
-        fprintf(stderr, "No se pudo descargar la biblioteca musical del iPhone.\n");
+        fprintf(stderr, "Could not download the iPhone music library.\n");
         return -1;
     }
 
@@ -235,7 +235,7 @@ static int query_tracks(sqlite3 *database, const Options *options, Track **track
     sqlite3_stmt *statement = NULL;
     int error = sqlite3_prepare_v2(database, sql, -1, &statement, NULL);
     if (error != SQLITE_OK) {
-        fprintf(stderr, "No se pudo consultar MediaLibrary.sqlitedb: %s\n",
+        fprintf(stderr, "Could not query MediaLibrary.sqlitedb: %s\n",
                 sqlite3_errmsg(database));
         return -1;
     }
@@ -272,7 +272,7 @@ static int query_tracks(sqlite3 *database, const Options *options, Track **track
     }
 
     if (error != SQLITE_DONE) {
-        fprintf(stderr, "Error recorriendo resultados: %s\n", sqlite3_errmsg(database));
+        fprintf(stderr, "Error iterating over results: %s\n", sqlite3_errmsg(database));
         free_tracks(tracks, count);
         sqlite3_finalize(statement);
         return -1;
@@ -316,7 +316,7 @@ static int find_candidates(afc_client_t afc, const char *filename, uint64_t expe
                            CandidateList *result) {
     char **folders = NULL;
     if (afc_read_directory(afc, "/iTunes_Control/Music", &folders) != AFC_E_SUCCESS) {
-        fprintf(stderr, "No se pudo leer /iTunes_Control/Music en el iPhone.\n");
+        fprintf(stderr, "Could not read /iTunes_Control/Music on the iPhone.\n");
         return -1;
     }
 
@@ -395,14 +395,14 @@ static int copy_tracks(afc_client_t afc, const Options *options, Track *tracks, 
                tracks[i].sample_rate);
 
         if (candidates.count == 0) {
-            printf("    No se encontró una copia remota con el mismo nombre y tamaño.\n");
+            printf("    No remote copy with the same name and size was found.\n");
             missing++;
             free_candidates(&candidates);
             continue;
         }
 
         if (candidates.count > 1) {
-            printf("    Aviso: hay %zu candidatos con el mismo nombre y tamaño; se usa el primero.\n",
+            printf("    Warning: %zu candidates have the same name and size; using the first one.\n",
                    candidates.count);
         }
 
@@ -423,14 +423,14 @@ static int copy_tracks(afc_client_t afc, const Options *options, Track *tracks, 
         snprintf(local_path, sizeof(local_path), "%s/%s", options->output, title);
 
         if (access(local_path, F_OK) == 0) {
-            printf("    Ya existe; se omite: %s\n", local_path);
+            printf("    Already exists; skipping: %s\n", local_path);
             skipped++;
             free_candidates(&candidates);
             continue;
         }
 
         if (copy_remote_file(afc, candidates.paths[0], local_path) == 0) {
-            printf("    Copiado: %s\n", local_path);
+            printf("    Copied: %s\n", local_path);
             copied++;
         } else {
             free_candidates(&candidates);
@@ -440,10 +440,10 @@ static int copy_tracks(afc_client_t afc, const Options *options, Track *tracks, 
     }
 
     if (options->dry_run) {
-        printf("\nDry run: %zu pistas con candidato, %zu sin candidato.\n",
+        printf("\nDry run: %zu tracks with a candidate, %zu without a candidate.\n",
                count - missing, missing);
     } else {
-        printf("\nRecuperadas: %zu; omitidas: %zu; sin candidato: %zu.\n",
+        printf("\nRecovered: %zu; skipped: %zu; without a candidate: %zu.\n",
                copied, skipped, missing);
     }
     return missing ? 1 : 0;
@@ -486,7 +486,7 @@ static int parse_options(int argc, char **argv, Options *options) {
             usage(argv[0]);
             exit(0);
         } else {
-            fprintf(stderr, "Opción desconocida o incompleta: %s\n", argv[i]);
+            fprintf(stderr, "Unknown or incomplete option: %s\n", argv[i]);
             return -1;
         }
     }
@@ -506,7 +506,7 @@ int main(int argc, char **argv) {
     }
 
     if (!options.dry_run && ensure_directory(options.output) != 0) {
-        fprintf(stderr, "No se pudo usar el directorio de salida %s: %s\n",
+        fprintf(stderr, "Could not use output directory %s: %s\n",
                 options.output, strerror(errno));
         return 2;
     }
@@ -522,14 +522,14 @@ int main(int argc, char **argv) {
     }
 
     if (device_error != IDEVICE_E_SUCCESS || !device) {
-        fprintf(stderr, "No se pudo conectar con el iPhone %s.\n", options.udid);
+        fprintf(stderr, "Could not connect to iPhone %s.\n", options.udid);
         return 3;
     }
 
     afc_client_t afc = NULL;
     if (afc_client_start_service(device, &afc, "iphone-audio-recover") != AFC_E_SUCCESS ||
         !afc) {
-        fprintf(stderr, "No se pudo iniciar AFC en el iPhone.\n");
+        fprintf(stderr, "Could not start AFC on the iPhone.\n");
         idevice_free(device);
         return 3;
     }
@@ -537,7 +537,7 @@ int main(int argc, char **argv) {
     char temp_template[] = "/tmp/iphone-audio-recover-XXXXXX";
     char *temp_directory = mkdtemp(temp_template);
     if (!temp_directory) {
-        fprintf(stderr, "No se pudo crear el directorio temporal: %s\n", strerror(errno));
+        fprintf(stderr, "Could not create the temporary directory: %s\n", strerror(errno));
         afc_client_free(afc);
         idevice_free(device);
         return 4;
@@ -555,7 +555,7 @@ int main(int argc, char **argv) {
 
     sqlite3 *database = NULL;
     if (sqlite3_open_v2(database_path, &database, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK) {
-        fprintf(stderr, "No se pudo abrir la copia temporal de la base de datos.\n");
+        fprintf(stderr, "Could not open the temporary database copy.\n");
         sqlite3_close(database);
         cleanup_temp_directory(temp_directory);
         afc_client_free(afc);
@@ -576,7 +576,7 @@ int main(int argc, char **argv) {
     }
 
     if (track_count == 0) {
-        fprintf(stderr, "No se encontraron pistas para artista='%s' álbum='%s'.\n",
+        fprintf(stderr, "No tracks found for artist='%s' album='%s'.\n",
                 options.artist, options.album);
         free_tracks(tracks, track_count);
         cleanup_temp_directory(temp_directory);
@@ -585,7 +585,7 @@ int main(int argc, char **argv) {
         return 6;
     }
 
-    printf("Coincidencias: %zu\n", track_count);
+    printf("Matches: %zu\n", track_count);
     result = copy_tracks(afc, &options, tracks, track_count);
 
     free_tracks(tracks, track_count);
